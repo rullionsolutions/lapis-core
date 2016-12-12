@@ -1,17 +1,17 @@
 {
   "name": "lapis-core",
   "version": "0.0.0",
-  "description": "Prototypical inheritance foundation",
+  "description": "Prototypical Inheritance Foundation",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "nodeunit test.js"
   },
   "repository": {
     "type": "git",
-    "url": "lapis-core"
+    "url": "git@github.com:rullionsolutions/lapis-core"
   },
   "author": "stephen.d.francis@gmail.com",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "underscore": ">= 1.0.0"
   }

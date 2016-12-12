@@ -68,7 +68,7 @@ Base.define("bind", function (funct_prop_id, happen_id) {
 // unbind funct_prop_id function from Happen; function remains in this
 Base.define("unbind", function (funct_prop_id) {
     var out = false;
-    _.each(this.happens, function (happens_array /*, happen_id*/) {
+    Under.each(this.happens, function (happens_array /*, happen_id*/) {
         var index = happens_array.indexOf(funct_prop_id);
         if (!out && index > -1) {
             happens_array.splice(index, 1);

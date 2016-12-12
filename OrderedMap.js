@@ -223,25 +223,3 @@ module.exports.define("copyFrom", function (source_orderedmap) {
         that.add(source_item);
     });
 });
-
-
-/**
- * @param string argument is either a require reference, like 'lazuli/session/Role', to an
- * OrderedMap, OR as require reference, '.' , then a property string, like
- * 'lazuli/session/Role.roles' either way, the referenced object must be a descendant of an
- * OrderedMap
- * @returns the OrderedMap referenced, or throws an Error
- */
-module.exports.define("getCollection", function (str) {
-    var parts = str.split(".");
-    var obj = require(parts[0]);
-
-    if (parts[1]) {
-        obj = obj[parts[1]];
-    }
-    if (!obj || typeof obj.isDescendantOf !== "function" || !obj.isDescendantOf(module.exports)) {
-        this.throwError("collection not recognized: " + str);
-    }
-    return obj;
-});
-

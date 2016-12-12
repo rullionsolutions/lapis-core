@@ -107,7 +107,10 @@ Base.define("printLogLine", function (str) {
 
 
 Base.define("resetLogCounters", function () {
-    this.log_counters = {};
+    var log_level;
+    for (log_level = 0; log_level <= 10; log_level += 2) {
+        this.log_counters[log_level] = 0;
+    }
 });
 
 
@@ -120,6 +123,6 @@ Base.define("printLogCounters", function () {
         str += delim + this.log_levels_text[log_level] + ": " + (this.log_counters[log_level] || 0);
         delim = ", ";
     }
-    this.printLine(str);
+    this.printLogLine(str);
 });
 

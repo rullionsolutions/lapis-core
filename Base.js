@@ -2,7 +2,6 @@
 
 "use strict";
 
-
 var Under = require("underscore");
 
 /**
@@ -225,35 +224,6 @@ module.exports.define("throwError", function (str_or_spec) {
 });
 
 
-// should be static
-/**
-* Return an object from the global memory structure using a fully-qualified string
-* @param Fully-qualified string, beginning with 'x.'
-* @return Object referenced by the string, throwing an x.Exception if not found
-*/
-module.exports.define("getObject", function (str) {
-    var parts;
-    var obj;
-    var i;
-
-    if (typeof str !== "string") {
-        this.throwError("invalid argument");
-    }
-    parts = str.split(".");
-    if (parts[0] !== "x") {
-        this.throwError("invalid ref string");
-    }
-    obj = this;
-    for (i = 1; i < parts.length; i += 1) {
-        if (!obj[parts[i]]) {
-            this.throwError("invalid ref string");
-        }
-        obj = obj[parts[i]];
-    }
-    return obj;
-});
-
-
 /**
 * To check if an Object is a descendant of another, through its parent property
 * @param Object
@@ -263,6 +233,16 @@ module.exports.define("isDescendantOf", function (obj) {
     return !!this.parent && (this.parent === obj || this.parent.isDescendantOf(obj));
 });
 
+
+module.exports.define("isOrIsDescendant", function (a, b) {
+    if (!a || !b || typeof a.isDescendantOf !== "function") {
+        return false;
+    }
+    if (a === b) {
+        return true;
+    }
+    return a.isDescendantOf(b);
+});
 
 // module.exports.define("getNullPromise", function (resolve_arg) {
 //     return new Promise(function (resolve /*, reject*/) {
