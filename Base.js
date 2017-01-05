@@ -3,6 +3,7 @@
 "use strict";
 
 var Under = require("underscore");
+var Q = require("q");
 
 /**
 * Top-level Archetype object, from which all others should be cloned
@@ -199,28 +200,13 @@ module.exports.define("output", function (str) {
 
 // overcome issues with strack traces
 module.exports.define("throwError", function (str_or_spec) {
-    var new_exc;
-    try {
-        this.throwErrorFunctionDoesntExist();       // this function is expected to NOT EXIST
-    } catch (e) {                   // so a TypeError is thrown here, which includes a stack trace
-        new_exc = new Error();
-        new_exc.stack = e.stack.split("\n");
-        new_exc.stack.shift();
-        new_exc.stack = new_exc.stack.join("\n");
-        new_exc.object = this;
-        // delete e.lineNumber;
-        // delete e.fileName;
-//        delete e.rhinoException;    // didn't work - uneditable?
-        // e.rhinoException = null;
-
-        if (typeof str_or_spec === "string") {
-            new_exc.message = str_or_spec;
-        } else {
-            new_exc.message = str_or_spec.text;
-            this.addProperties.call(new_exc, str_or_spec);
-        }
-        throw new_exc;
+    var str = (typeof str_or_spec === "string") ? str_or_spec : str_or_spec.text;
+    var new_exc = new Error(str);
+    new_exc.object = this;
+    if (typeof str_or_spec !== "string") {
+        this.addProperties.call(new_exc, str_or_spec);
     }
+    throw new_exc;
 });
 
 
@@ -244,9 +230,11 @@ module.exports.define("isOrIsDescendant", function (a, b) {
     return a.isDescendantOf(b);
 });
 
-// module.exports.define("getNullPromise", function (resolve_arg) {
-//     return new Promise(function (resolve /*, reject*/) {
-//         resolve(resolve_arg);
-//     });
-// });
+
+// deprecated - prefer use of Q.fcall directly...
+module.exports.define("getNullPromise", function (resolve_arg) {
+    return Q.fcall(function () {
+        return resolve_arg;
+    });
+});
 

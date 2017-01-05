@@ -1,7 +1,10 @@
 "use strict";
 
 var Core = require(".");
-var Under = require("underscore");
+var Q = require("q");
+// var Under = require("underscore");
+var last_begin = 0;
+var last_end = 0;
 
 
 module.exports.Base_clone = function (test) {
@@ -100,6 +103,125 @@ module.exports.Base_rest = function (test) {
 };
 
 
+function waiter(test, num) {
+    var def = Q.defer();
+    Core.Base.debug("Beginning " + num);
+    test.equal(num, last_begin + 1, "Beginning " + num);
+    last_begin = num;
+    setTimeout(function () {
+        Core.Base.debug("   Ending " + num);
+        test.equal(num, last_end + 1, "   Ending " + num);
+        last_end = num;
+        def.resolve(num);
+    }, Math.floor(Math.random() * 200));
+    return def.promise;
+}
+
+
+module.exports.setUp = function (callback) {
+//    last_call  = 0;
+    last_begin = 0;
+    last_end = 0;
+    callback();
+};
+
+
+module.exports.Happen_manual = function (test) {
+    test.expect(18);
+
+    waiter(test, 1).then(function () {
+        return waiter(test, 2).then(function () {
+            return waiter(test, 3).then(function () {
+                if (Math.random() > 0.5) {
+                    return waiter(test, 4, "a");
+                }
+                return waiter(test, 4, "b");
+            }).then(function () {
+                return waiter(test, 5);
+            });
+        }).then(function () {
+            return waiter(test, 6);
+        }).then(function () {
+            Core.Base.debug("    Doing 6b");
+        });
+    })
+    .then(function () {
+        return waiter(test, 7).then(function () {
+            return waiter(test, 8);
+        });
+    })
+    .then(function () {
+        return waiter(test, 9);
+    })
+    .then(function () {
+        test.done();
+    })
+    .fail(function (reason) {
+        Core.Base.error(reason);
+        test.done();
+    });
+};
+
+
+module.exports.Happen_main = function (test) {
+    var Controller;
+    test.expect(12);
+
+    Controller = Core.Base.clone({ id: "Controller", });
+    Controller.register("someHappenstance");
+
+    Controller.define("method1", function () {
+        Core.Base.trace("method1");
+        return waiter(test, 1);
+    });
+    Controller.bind("method1", "someHappenstance");
+
+
+    Controller.define("method2", function () {
+        Core.Base.trace("method2");
+        return waiter(test, 2);
+    });
+
+    Controller.define("method3", function () {
+        Core.Base.trace("method3");
+        return this.method2().then(function () {
+            return waiter(test, 3);
+        });
+    });
+
+    Controller.define("method4", function () {
+        Core.Base.trace("method4");
+        return this.method3().then(function () {
+            return waiter(test, 4);
+        });
+    });
+
+    Controller.bind("method4", "someHappenstance");
+
+
+    Controller.define("method5", function () {
+        var that = this;
+        Core.Base.trace("method5");
+        return waiter(test, 5).then(function () {
+            return that.method6();
+        });
+    });
+
+    Controller.bind("method5", "someHappenstance");
+
+    Controller.define("method6", function () {
+        Core.Base.trace("method6");
+        return waiter(test, 6);
+    });
+
+    Controller.happenAsync("someHappenstance", Q.fcall(function () { return true; })).then(
+        function () {
+            Core.Base.trace("at end");
+            test.done();
+        });
+};
+
+
 module.exports.Log_fatal = function (test) {
     var a = Core.Base.clone({
         id: "a",
@@ -108,6 +230,7 @@ module.exports.Log_fatal = function (test) {
     });
     var last_log_msg;
     test.expect(50);
+    Core.Base.resetLogCounters();
 
     a.override("output", function (str) {
         last_log_msg = str;

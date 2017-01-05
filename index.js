@@ -11,3 +11,4 @@ exports.Format = require("./Format.js");
 
 exports.OrderedMap = require("./OrderedMap.js");
 
+exports.MessageManager = require("./MessageManager.js");

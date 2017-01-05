@@ -13,7 +13,7 @@ Base.define("log_levels", {
     fatal: 10,
 });
 
-Base.define("log_level", 0);
+Base.define("log_level", 4);        // INFO level by default
 
 Base.define("log_levels_text", [
     "TRACE", "INTO",

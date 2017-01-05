@@ -127,6 +127,11 @@ module.exports.define("addJSON", function (container, prefix, type) {
 });
 
 
+module.exports.define("count", function () {
+    return this.messages.length;
+});
+
+
 /**
 * Removes each message tagged with same tag as passed as input
 * @param tag: string (to control message removal)
