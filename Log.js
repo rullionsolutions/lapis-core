@@ -79,6 +79,9 @@ Base.define("doLog", function (log_level, str) {
 
 Base.define("setLogLevel", function (new_log_level) {
     if (new_log_level !== this.log_level) {
+        if (!this.log_levels_text[new_log_level]) {
+            this.throwError("unrecognized log level: " + new_log_level);
+        }
         this.log_level = new_log_level;
         this.output("switched to log level: " + this.log_levels_text[this.log_level]);
     }
