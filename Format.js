@@ -1,9 +1,9 @@
 "use strict";
 
-var Base = require("./Base.js");
+var Core = require("lapis-core/index.js");
 
 
-module.exports = Base.clone({
+module.exports = Core.Base.clone({
     id: "Format",
     decimal_digits: 0,
     total_width: 10,
@@ -209,7 +209,6 @@ module.exports.define("getDBDateFormat", function (format) {
 });
 
 
-
 /**
 * To attempt to parse a given date (or date/time) string, using given in/out formats if supplied,
 * and applying any 'adjusters'
@@ -271,16 +270,13 @@ module.exports.define("parseDateExpression", function (val, in_format, out_forma
             date = new Date(Date.parse(part));      // TODO - inadequate parsing
         }
     });
-    return (date ? date.toUTCString() : val);
+    return (date ? date.format(out_format) : val);
 });
-
 
 
 module.exports.define("parseStrictDate", function (str, format) {
     format = format || this.date_format;
-
 });
-
 
 
 // module.exports.define("fitStringToFormat", function (str, format) {

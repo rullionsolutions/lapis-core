@@ -2,8 +2,8 @@
 
 "use strict";
 
-var Under = require("underscore");
-var Q = require("q");
+// var Under = require("underscore");
+// var Q = require("q");
 
 /**
 * Top-level Archetype object, from which all others should be cloned
@@ -124,11 +124,12 @@ module.exports.override("toString", function () {
 * @param spec: object map of properties to add
 */
 module.exports.define("addProperties", function (spec) {
-    Under.extend(this, spec);
-    // var that;
+    // Under.extend(this, spec);
+    var that = this;
     // Under.each(spec, function (value, key) {
-    //     that[key] = value;
-    // });
+    Object.keys(spec).forEach(function (key) {
+        that[key] = spec[key];
+    });
 });
 
 
@@ -178,10 +179,11 @@ module.exports.define("replaceToken", function (token) {
 module.exports.define("view", function (format) {
     var str = (format === "block" ? "" : "{");
     var delim = "";
+    var that = this;
 
-    Under.each(this, function (value, key) {
-        if (typeof value !== "function") {
-            str += delim + key + "=" + value;
+    Object.keys(this).forEach(function (key) {
+        if (typeof that[key] !== "function") {
+            str += delim + key + "=" + that[key];
             delim = (format === "block" ? "\n" : ", ");
         }
     });
@@ -232,9 +234,26 @@ module.exports.define("isOrIsDescendant", function (a, b) {
 
 
 // deprecated - prefer use of Q.fcall directly...
+/*
 module.exports.define("getNullPromise", function (resolve_arg) {
     return Q.fcall(function () {
         return resolve_arg;
     });
 });
 
+
+module.exports.define("getReadableStreamToStringPromise", function (reader, encoding) {
+    return Q.Promise(function (resolve, reject) {
+        var raw_data = "";
+        response.on("data", function (chunk) {
+            raw_data += chunk;
+        });
+        response.on("end", function () {
+            resolve(raw_data);
+        });
+        response.on("error", function (error) {
+            reject(error);
+        });
+    });
+});
+*/

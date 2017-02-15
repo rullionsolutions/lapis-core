@@ -1,14 +1,16 @@
 "use strict";
 
 
-exports.Base = require("./Base.js");
+exports.Base = require("lapis-core/Base.js");
 
-require("./Log.js");         // adds to Base
+require("lapis-core/Log.js");         // adds to Base
 
-require("./Happen.js");         // adds to Base
+require("lapis-core/Happen.js");         // adds to Base
 
-exports.Format = require("./Format.js");
+exports.Collection = require("lapis-core/Collection.js");
 
-exports.OrderedMap = require("./OrderedMap.js");
+exports.Format = require("lapis-core/Format.js");
 
-exports.MessageManager = require("./MessageManager.js");
+exports.OrderedMap = require("lapis-core/OrderedMap.js");
+
+exports.MessageManager = require("lapis-core/MessageManager.js");

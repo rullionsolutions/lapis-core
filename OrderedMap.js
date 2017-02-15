@@ -1,11 +1,11 @@
 "use strict";
 
-var Base = require("./Base.js");
+var Core = require("lapis-core/index.js");
 
 /**
 * A map of string keys to objects that is also a positional array of those objects
 */
-module.exports = Base.clone({
+module.exports = Core.Base.clone({
     id: "OrderedMap",
     obj_map: {},
     obj_arr: [],

@@ -1,10 +1,10 @@
 "use strict";
 
-var Base = require("./Base.js");
-var Under = require("underscore");
+var Core = require("lapis-core/index.js");
+// var Under = require("underscore");
 
 
-module.exports = Base.clone({
+module.exports = Core.Base.clone({
     id: "MessageManager",
     prefix: "",
 });
@@ -55,25 +55,16 @@ module.exports.override("report", function (exception) {
 });
 
 
-/**
-* Returns the input prefix concatenated with the this.prefix string
-* @param prefix string
-* @return new prefix string
-*/
-module.exports.define("updatePrefix", function (prefix) {
-    if (typeof prefix === "string") {
-        if (prefix && this.prefix) {
-            prefix += ", ";
+module.exports.define("addMessagesToArray", function (array, type_filter) {
+    this.messages.forEach(function (msg) {
+        if (!type_filter || (type_filter === msg.type)) {
+            array.push(msg);
         }
-        if (this.prefix) {
-            prefix += this.prefix;
-        }
-    } else {
-        prefix = "";
-    }
-    return prefix;
+    });
+    this.chain(function (msg_mgr) {
+        msg_mgr.addMessagesToArray(array, type_filter);
+    });
 });
-
 
 /**
 * creates an object starting from the messages array adding on each message the prefix passed as
@@ -81,10 +72,51 @@ module.exports.define("updatePrefix", function (prefix) {
 * @param message object
 * @return The same object passed as input or a new one if undefined
 */
-module.exports.define("getStringArray", function (type_filter) {
-    return this.messages.map(function (msg) {
-        return "[" + this.type + "] " + this.prefix + " " + this.text;
+module.exports.define("addMessagesToStringArray", function (array, type_filter, parent_prefix, include_type) {
+    var that = this;
+    var new_prefix = this.getNewPrefix(parent_prefix);
+    this.messages.forEach(function (msg) {
+        if (!type_filter || (type_filter === msg.type)) {
+            array.push(that.getMessageAsString(msg, new_prefix, include_type));
+        }
     });
+    this.chain(function (msg_mgr) {
+        msg_mgr.addMessagesToStringArray(array, type_filter, new_prefix, include_type);
+    });
+});
+
+
+module.exports.define("getMessageAsString", function (msg, prefix, include_type) {
+    var out = "";
+    if (include_type) {
+        out = "[" + msg.type + "] ";
+    }
+    if (prefix) {
+        out += prefix;
+    }
+    return out + this.text;
+});
+
+
+module.exports.define("getNewPrefix", function (parent_prefix) {
+    var out = "";
+    if (typeof parent_prefix === "string") {
+        if (parent_prefix) {
+            out = parent_prefix + ", ";
+        }
+        out += this.getPrefix();
+    }
+    return out;
+});
+
+
+/**
+* Returns the input prefix concatenated with the this.prefix string
+* @param prefix string
+* @return new prefix string
+*/
+module.exports.define("getPrefix", function () {
+    return this.prefix;
 });
 
 
@@ -95,7 +127,7 @@ module.exports.define("getStringArray", function (type_filter) {
 * @return message string
 */
 module.exports.define("getString", function (separator, type_filter) {
-    return this.getStringArray(type_filter).join(separator || "\n");
+    return this.addMessagesToStringArray([], type_filter).join(separator || "\n");
 });
 
 
@@ -110,15 +142,16 @@ module.exports.define("addJSON", function (container, prefix, type) {
     var msg_out;
 
     prefix = this.updatePrefix(prefix);
-    function addProp(val, prop) {
-        msg_out[prop] = val;
-    }
+    // function addProp(val, prop) {
+    //     msg_out[prop] = val;
+    // }
 
     for (i = 0; i < this.messages.length; i += 1) {
         msg = this.messages[i];
         if (!type || (type === msg.type)) {
             msg_out = {};
-            Under.each(msg, addProp);
+            Core.Base.addProperties.call(msg_out, msg);
+            // Under.each(msg, addProp);
 //            msg_out.type = msg.type;
             msg_out.text = (prefix ? prefix + ": " : "") + msg.text;
             container.push(msg_out);
@@ -132,6 +165,10 @@ module.exports.define("count", function () {
 });
 
 
+module.exports.define("chain", function (msg_mgr) {
+});
+
+
 /**
 * Removes each message tagged with same tag as passed as input
 * @param tag: string (to control message removal)
@@ -139,6 +176,9 @@ module.exports.define("count", function () {
 module.exports.define("clear", function () {
     this.messages = [];
     this.error_recorded = false;
+    this.chain(function (msg_mgr) {
+        msg_mgr.clear();
+    });
 });
 
 
