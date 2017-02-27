@@ -15,7 +15,7 @@ Core.Base.define("log_levels", {
 
 Core.Base.define("log_level", 4);        // INFO level by default
 
-Core.Base.define("log_show_caller", false);        // output calling object
+Core.Base.define("log_show_caller", true);        // output calling object
 
 Core.Base.define("log_levels_text", [
     "TRACE", "INTO",
@@ -66,8 +66,8 @@ Core.Base.define("fatal", function (str) {
 
 
 Core.Base.define("report", function (e, log_level) {
-    this.doLog(log_level || this.log_levels.error, e.toString() + " from " + e.object);
-    this.output(e.stack);
+    this.doLog(log_level || this.log_levels.error, e.toString() + " thrown from " + e.object);
+    this.output(e.stack || "[no stack trace]");
 });
 
 
@@ -80,7 +80,7 @@ Core.Base.define("reportException", function (e, log_level) {
 Core.Base.define("doLog", function (log_level, str) {
     this.log_counters[log_level] = (this.log_counters[log_level] || 0) + 1;
     if (this.checkLogLevel(log_level)) {
-        this.printLogLine(this.log_levels_text[log_level] + ": " + str);
+        this.printLogLine(str, log_level);
     }
 });
 
@@ -101,25 +101,29 @@ Core.Base.define("checkLogLevel", function (log_level) {
 });
 
 
-Core.Base.define("printLogLine", function (str) {
+Core.Base.define("printLogLine", function (str, log_level) {
+    str = ": " + str;
+    if (this.log_show_caller) {
+        str = "  " + this.toString() + str;
+    }
+    str = this.log_levels_text[log_level] + str;
     if (this.line_prefix === "time") {
         str = (new Date()).format("HH:mm:ss.SSS") + " " + str;
     } else if (this.line_prefix === "datetime") {
         str = (new Date()).format("yyyy-MM-dd HH:mm:ss.SSS") + " " + str;
-    }
-    if (this.log_show_caller) {
-        str += " in " + this.toString();
     }
     this.output(str);
 });
 
 
 Core.Base.define("openLogFile", function (log_file) {
-    this.log_file = log_file;
-    this.line_prefix = "time";
-    this.reassign("output", function (str) {
-        this.log_file.println(str);
-        this.log_file.flush();
+    Core.Base.log_file = log_file;
+    Core.Base.line_prefix = "time";
+    Core.Base.reassign("output", function (str) {
+        if (typeof str === "string") {
+            this.log_file.println(str);
+            this.log_file.flush();
+        }
     });
 });
 
@@ -148,6 +152,6 @@ Core.Base.define("printLogCounters", function () {
         str += delim + this.log_levels_text[log_level] + ": " + (this.log_counters[log_level] || 0);
         delim = ", ";
     }
-    this.printLogLine(str);
+    this.output(str);
 });
 

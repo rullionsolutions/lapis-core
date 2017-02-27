@@ -94,17 +94,18 @@ module.exports.define("getMessageAsString", function (msg, prefix, include_type)
     if (prefix) {
         out += prefix;
     }
-    return out + this.text;
+    return out + msg.text;
 });
 
 
 module.exports.define("getNewPrefix", function (parent_prefix) {
-    var out = "";
+    var out = parent_prefix || "";
+    var local_prefix = this.getPrefix();
     if (typeof parent_prefix === "string") {
-        if (parent_prefix) {
-            out = parent_prefix + ", ";
+        if (parent_prefix && parent_prefix.substr(-2) !== ", ") {
+            out += ", ";
         }
-        out += this.getPrefix();
+        out += local_prefix;
     }
     return out;
 });
@@ -127,7 +128,9 @@ module.exports.define("getPrefix", function () {
 * @return message string
 */
 module.exports.define("getString", function (separator, type_filter) {
-    return this.addMessagesToStringArray([], type_filter).join(separator || "\n");
+    var array = [];
+    this.addMessagesToStringArray(array, type_filter);
+    return array.join(separator || "\n");
 });
 
 
@@ -173,12 +176,33 @@ module.exports.define("chain", function (msg_mgr) {
 * Removes each message tagged with same tag as passed as input
 * @param tag: string (to control message removal)
 */
-module.exports.define("clear", function () {
-    this.messages = [];
+module.exports.define("clear", function (filter_tag, filter_type) {
+    var n = 0;
+    var msg;
+
     this.error_recorded = false;
-    this.chain(function (msg_mgr) {
-        msg_mgr.clear();
-    });
+    while (n < this.messages.length) {
+        msg = this.messages[n];
+        if (!msg.fixed && (!filter_type || filter_type === msg.type)) {
+            if (filter_tag) {
+                msg[filter_tag] = false;
+            } else {
+                msg.report = false;
+                msg.record = false;
+            }
+        }
+        if (msg.report === false && msg.record === false) {
+            this.messages.splice(n, 1);
+            this.number -= 1;
+        } else {
+            if (msg.type === "E") {
+                this.error_recorded = true;
+            }
+            n += 1;
+        }
+    }
+    // clear() doesn't chain down to every level - from Session to Trans and from Trans to Record
+    // but NOT from Record to Field
 });
 
 

@@ -5,6 +5,12 @@ var Core = require("lapis-core/index.js");
 
 module.exports = Core.Base.clone({
     id: "Collection",
+    collections: {},
+});
+
+
+module.exports.defbind("addToList", "cloneType", function () {
+    module.exports.collections[this.id] = this;
 });
 
 /*
@@ -17,19 +23,21 @@ module.exports.defbind("validate", "clone", function () {
 */
 
 module.exports.define("getItemTypeObject", function () {
-    if (typeof this.item_type === "string") {       // R6 shim...
-        return this.getObject(this.item_type);
-    }
     return this.item_type;
 });
 
 
 module.exports.define("get", function (id) {
-    try {
-        return this.getThrowIfUnrecognized(id);
-    } catch (e) {
-        return null;
+    return this[id];
+});
+
+
+module.exports.define("getThrowIfUnrecognized", function (id) {
+    var obj = this[id];
+    if (!obj) {
+        this.throwError("not recognized: " + id);
     }
+    return obj;
 });
 
 
@@ -43,6 +51,9 @@ module.exports.define("add", function (obj) {
     if (!this.isAllowedMember(obj)) {
         this.throwError(obj + " is not item_type " + this.item_type + " or a descendant of it");
     }
+    if (this[obj.id] === obj) {
+        return;         // silently ignore the add of an object already here...
+    }
     if (this[obj.id]) {
         this.throwError("object with this id already present: " + obj.id);
     }
@@ -50,21 +61,24 @@ module.exports.define("add", function (obj) {
 });
 
 
-module.exports.define("getThrowIfUnrecognized", function (id) {
-    var obj = this[id];
-    if (!obj) {
-        this.throwError("not recognized: " + id);
+// for using a descendant of Base as a Collection - ignore the 'id' property
+// funct arg can be a function or a string - prop name for function to use
+// 'each' is preferred, forOwn is deprecated
+module.exports.define("each", function (funct) {
+    var that = this;
+    if (typeof funct !== "function") {
+        funct = this[funct];
     }
-    return obj;
+    Object.keys(this).forEach(function (prop) {
+        if (prop !== "item_type" && that.isAllowedMember(that[prop])) {
+            funct(that[prop]);
+        }
+    });
 });
 
-// for using a descendant of Base as a Collection - ignore the 'id' property
+
 module.exports.define("forOwn", function (funct) {
     var that = this;
-// if (!this.item_type || typeof this.item_type.isDescendantOf !== "function"
-//           || !this.item_type.isDescendantOf(x.base.Base)) {
-//     this.throwError("collection must have an item_type property which is a descendant of /Base");
-// }
     if (typeof funct !== "function") {
         funct = this[funct];
     }
@@ -73,4 +87,9 @@ module.exports.define("forOwn", function (funct) {
             funct(prop, that[prop]);
         }
     });
+});
+
+
+module.exports.define("getCollection", function (id) {
+    return module.exports.collections[id];
 });

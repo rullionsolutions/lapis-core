@@ -87,6 +87,9 @@ module.exports.define("toTitleCase", function (str) {
 });
 
 
+module.exports.define("toNameCase", module.exports.toTitleCase);
+
+
 module.exports.define("convertNameFirstSpaceLast", function (name) {
     var index = name.indexOf(",");
     if (index > -1) {            // only attempt to convert if comma is present
@@ -281,3 +284,45 @@ module.exports.define("parseStrictDate", function (str, format) {
 
 // module.exports.define("fitStringToFormat", function (str, format) {
 //     var match = format.match(/(\w){1,2}\W((\w){1,2}\W?(\w){1,2}\W?(\w){1,2}\W?(\w){1,2}\W?)
+
+
+// For use making snippets of HTML documents.
+module.exports.define("snippetHTML", function (text, limit) {
+    var stripped;
+    var offset;
+
+    if (typeof text !== "string") {
+        text = String(text);
+    }
+
+    stripped = text.replace(/<\/?[a-zA-Z]+\s?[^>]*>/gi, "");
+    // Offset = length of tags in stripped version - accounted for in limit calculation
+    offset = text.length - stripped.length;
+
+    // replace with simple html tags (no attributes)
+    text = text.replace(/(<\/?[a-zA-Z]+)\s?[^>]*>/gi, "$1>").replace(/<\/?meta>/gi, "");
+    if (stripped.length > limit) {
+        text = text.substring(0, offset + limit);
+        text = this.fixHTML(text);
+    }
+    return text;
+});
+
+// Finds unclosed HTML tags and appends closing tags.
+// Should return well-structured HTML
+module.exports.define("fixHTML", function (text) {
+    var text2 = text;  // save for result
+    var tags = "";
+    // Outer match first, so construct closing tags in reverse order.
+    var patt = /<([a-z]+)\b[^>/]*>(?!.*?<\/\1>).*$/i;
+    var test = text.match(patt); // Format [ matched_span, (1) ]
+    while (test) { // while there are still incomplete tags
+        tags = "</" + test[1] + ">" + tags;
+        // This one should no longer match, will find the next shortest.
+        text = text2 + tags;
+        test = text.match(patt);
+    }
+    // Append tags to saved original text
+    text2 += tags;
+    return text2;
+});
