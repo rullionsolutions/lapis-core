@@ -221,59 +221,81 @@ module.exports.define("getDBDateFormat", function (format) {
 * @return Converted date string (if conversion could be performed), otherwise returns the input
 * string
 */
-module.exports.define("parseDateExpression", function (val, in_format, out_format) {
-    var parts;
-    var date = new Date();
-
-    if (typeof val !== "string") {
-        return val;
+module.exports.define("parseDateExpressionToDate", function (str, in_format) {
+    var datetime;
+    if (typeof str !== "string" || !str) {
+        return null;
     }
-    parts = val.split("+");
-    in_format = in_format || this.in_date_format || this.int_date_format;
-    out_format = out_format || this.out_date_format || this.int_date_format;
-    parts.forEach(function (part) {
-        if (part === "today") {
-            return;
-        }
-        if (part === "now") {
-            return;
-        }
-        if (part === "day-start") {
-            date.clearTime();
-        } else if (part === "day-end") {
-            date.setHours(23);
-            date.setMinutes(59);
-            date.setSeconds(59);
-            date.setMilliseconds(999);
-        } else if (part === "week-start") {
-            date.add("d", -((date.getDay() + this.week_start_day) % 7));            // getDay() returns 0 for Sun to 6 for Sat
-        } else if (part === "week-end") {
-            date.add("d", 6 - ((date.getDay() + this.week_start_day) % 7));
-        } else if (part === "month-start") {
-            date.setDate(1);
-        } else if (part === "month-end") {
-            date.add("M", 1);
-            date.setDate(1);
-            date.add("d", -1);
-        } else if (part.indexOf("minutes") > -1) {
-            date.add("m", parseInt(part, 10));
-        } else if (part.indexOf("hours") > -1) {
-            date.add("h", parseInt(part, 10));
-        } else if (part.indexOf("days") > -1) {
-            date.add("d", parseInt(part, 10));
-        } else if (part.indexOf("weeks") > -1) {
-            date.add("d", parseInt(part, 10) * 7);
-        } else if (part.indexOf("months") > -1) {
-            date.add("M", parseInt(part, 10));
-        } else if (part.indexOf("years") > -1) {
-            date.add("y", parseInt(part, 10));
-        } else if (parseInt(part, 10).toFixed(0) === part) {
-            date.add("d", parseInt(part, 10));
+
+    function doDateInitializer(part) {
+        if (part.toLowerCase() === "today") {
+            datetime = new Date();
+            datetime.clearTime();
+        } else if (part.toLowerCase() === "now") {
+            datetime = new Date();
         } else {
-            date = new Date(Date.parse(part));      // TODO - inadequate parsing
+            datetime = Date.parseString(part, in_format);
+        }
+    }
+
+    function doDateAmender(part) {
+        if (part === "day-start") {
+            datetime.clearTime();
+        } else if (part === "day-end") {
+            datetime.setHours(23);
+            datetime.setMinutes(59);
+            datetime.setSeconds(59);
+            datetime.setMilliseconds(999);
+        } else if (part === "week-start") {
+            datetime.add("d", -(datetime.getDay() % 7));            // getDay() returns 0 for Sun to 6 for Sat
+        } else if (part === "week-end") {
+            datetime.add("d", 6 - (datetime.getDay() % 7));
+        } else if (part === "month-start") {
+            datetime.setDate(1);
+        } else if (part === "month-end") {
+            datetime.add("M", 1);
+            datetime.setDate(1);
+            datetime.add("d", -1);
+        } else if (part.indexOf("minutes") > -1) {
+            datetime.add("m", parseInt(part, 10));
+        } else if (part.indexOf("hours") > -1) {
+            datetime.add("h", parseInt(part, 10));
+        } else if (part.indexOf("days") > -1) {
+            datetime.add("d", parseInt(part, 10));
+        } else if (part.indexOf("weeks") > -1) {
+            datetime.add("d", parseInt(part, 10) * 7);
+        } else if (part.indexOf("months") > -1) {
+            datetime.add("M", parseInt(part, 10));
+        } else if (part.indexOf("years") > -1) {
+            datetime.add("y", parseInt(part, 10));
+        } else if (parseInt(part, 10).toFixed(0) === part) {
+            datetime.add("d", parseInt(part, 10));
+        } else {
+            this.throwError("date/time amended before being initialized: " + str);
+        }
+    }
+
+    str.split("+").forEach(function (part) {
+        if (datetime) {
+            doDateAmender(part);
+        } else {
+            doDateInitializer(part);
         }
     });
-    return (date ? date.format(out_format) : val);
+
+    if (!datetime) {
+        this.throwError("not a valid date/time expression: " + str);
+    }
+    return datetime;
+});
+
+
+module.exports.define("parseDateExpression", function (str, in_format, out_format) {
+    var datetime = this.parseDateExpressionToDate(str, in_format);
+    if (datetime) {
+        str = datetime.format(out_format || "yyyy-MM-dd");
+    }
+    return str;
 });
 
 
