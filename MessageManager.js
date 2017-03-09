@@ -35,6 +35,20 @@ module.exports.define("add", function (spec) {
     if (spec.type === "E") {
         this.error_recorded = true;
     }
+    return spec;
+});
+
+
+module.exports.override("remove", function (obj) {
+    var index;
+    if (!obj) {
+        this.throwError("no message object supplied");
+    }
+    index = this.messages.indexOf(obj);
+    if (index === -1) {
+        this.throwError("message not found: " + this.view.call(obj));
+    }
+    this.messages.splice(index, 1);
 });
 
 
