@@ -203,7 +203,16 @@ module.exports.define("output", function (str) {
 // overcome issues with strack traces
 module.exports.define("throwError", function (str_or_spec) {
     var str = (typeof str_or_spec === "string") ? str_or_spec : str_or_spec.text;
-    var new_exc = new Error(str);
+    // var new_exc = new Error(str);
+    // the above DOESN'T produce stack trace in Rhino...
+    var new_exc;
+    try {
+        this.callFunctionWithNameThatDoesntExist();
+    } catch (e) {
+        new_exc = e;
+        new_exc.name = "LapisError";
+        new_exc.message = str;
+    }
     new_exc.object = this;
     if (typeof str_or_spec !== "string") {
         this.addProperties.call(new_exc, str_or_spec);

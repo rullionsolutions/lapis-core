@@ -5,6 +5,7 @@ var Core = require("lapis-core/index.js");
 
 module.exports = Core.Base.clone({
     id: "Collection",
+    label_prop: "title",
     collections: {},
 });
 
@@ -92,4 +93,37 @@ module.exports.define("forOwn", function (funct) {
 
 module.exports.define("getCollection", function (id) {
     return module.exports.collections[id];
+});
+
+
+module.exports.define("getCollectionThrowIfUnrecognized", function (id) {
+    var obj = this.getCollection(id);
+    if (!obj) {
+        this.throwError("not recognized: " + id);
+    }
+    return obj;
+});
+
+
+module.exports.define("getLabel", function (id) {
+    return this.get(id)[this.label_prop];
+});
+
+
+module.exports.define("getLabelThrowIfUnrecognized", function (id) {
+    return this.getThrowIfUnrecognized(id)[this.label_prop];
+});
+
+
+module.exports.define("populateLoV", function (lov) {
+    var that = this;
+    this.each(function (source_item) {
+        var label = source_item[that.label_prop];
+        var active = !that.active_prop || source_item[that.active_prop];
+        if (label) {
+            lov.addItem(source_item.id, label, active);
+        } else {
+            that.warn("ignoring item with blank label: " + source_item.id);
+        }
+    });
 });
