@@ -202,7 +202,7 @@ module.exports.define("output", function (str) {
 
 // overcome issues with strack traces
 module.exports.define("throwError", function (str_or_spec) {
-    var str = (typeof str_or_spec === "string") ? str_or_spec : str_or_spec.text;
+    var str = (typeof str_or_spec === "string") ? str_or_spec : (str_or_spec.text || str_or_spec.id);
     // var new_exc = new Error(str);
     // the above DOESN'T produce stack trace in Rhino...
     var new_exc;
