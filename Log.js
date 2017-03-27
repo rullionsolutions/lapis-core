@@ -66,8 +66,11 @@ Core.Base.define("fatal", function (str) {
 
 
 Core.Base.define("report", function (e, log_level) {
-    this.doLog(log_level || this.log_levels.error, e.toString() + " thrown from " + e.object);
-    this.output(e.stack || "[no stack trace]");
+    log_level = log_level || this.log_levels.error;
+    if (this.checkLogLevel(log_level)) {
+        this.printLogLine(e.toString() + " thrown from " + e.object, log_level);
+        this.output(e.stack || "[no stack trace]");
+    }
 });
 
 
