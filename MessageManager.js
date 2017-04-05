@@ -149,6 +149,26 @@ module.exports.define("getString", function (separator, type_filter) {
 
 
 /**
+* purpose: Returns the input prefix concatenated with the this.prefix string
+* args   : prefix string
+* returns: new prefix string
+*/
+module.exports.define("updatePrefix", function (prefix) {
+    if (typeof prefix === "string") {
+        if (prefix && this.prefix) {
+            prefix += ", ";
+        }
+        if (this.prefix) {
+            prefix += this.prefix;
+        }
+    } else {
+        prefix = "";
+    }
+    return prefix;
+});
+
+
+/**
 * Copies each message object (selected by tag and type) of the this.messages array in the container
 * input array with the message.text prefixed
 * @param container array, tag string, prefix string, message type string
