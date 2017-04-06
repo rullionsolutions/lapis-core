@@ -153,12 +153,11 @@ module.exports.define("getString", function (separator, type_filter) {
 * input array with the message.text prefixed
 * @param container array, tag string, prefix string, message type string
 */
-module.exports.define("addJSON", function (container, prefix, type) {
+module.exports.define("addJSON", function (container, parent_prefix, type) {
     var i;
     var msg;
     var msg_out;
-
-    prefix = this.updatePrefix(prefix);
+    var new_prefix = this.getNewPrefix(parent_prefix);
     // function addProp(val, prop) {
     //     msg_out[prop] = val;
     // }
@@ -170,7 +169,7 @@ module.exports.define("addJSON", function (container, prefix, type) {
             Core.Base.addProperties.call(msg_out, msg);
             // Under.each(msg, addProp);
 //            msg_out.type = msg.type;
-            msg_out.text = (prefix ? prefix + ": " : "") + msg.text;
+            msg_out.text = (new_prefix ? new_prefix + ": " : "") + msg.text;
             container.push(msg_out);
         }
     }
