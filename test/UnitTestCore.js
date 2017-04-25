@@ -61,7 +61,7 @@ module.exports.override("test", function () {
     this.assert(b.children.toString() === "/Base/OrderedMap/children", "b.children.toString() === /Base/OrderedMap/children");
     this.assert(b.children.get(0).toString() === "/Base/jen", "b.children.get(0).toString() === /Base/jen");
     this.assert(b.children.get(0) === b.children.get("jen"), "Child Jen at index 0");
-    this.assert(b.children.length() === 2,"Two children added");
+    this.assert(b.children.length() === 2, "Two children added");
     this.assert(b.children.get(1).name === "Mark", "Child 1 name is Mark");
 
     b.clone = function (spec) {
