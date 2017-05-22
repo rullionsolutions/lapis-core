@@ -19,6 +19,9 @@ module.exports.define = function (key, value) {
         this.throwError("key already exists in prototype chain: " + key);
     }
     this[key] = value;
+    if (typeof value === "function") {
+        value.displayName = key;
+    }
     return value;
 };
 
@@ -35,6 +38,9 @@ module.exports.override = function (key, value) {
         this.throwError("value's typeof is not the same as original value's: " + key);
     }
     this[key] = value;
+    if (typeof value === "function") {
+        value.displayName = key;
+    }
     return value;
 };
 
@@ -48,6 +54,9 @@ module.exports.reassign = function (key, value) {
         this.throwError("value's typeof is not the same as original value's: " + key);
     }
     this[key] = value;
+    if (typeof value === "function") {
+        value.displayName = key;
+    }
     return value;
 };
 
@@ -130,6 +139,7 @@ module.exports.define("addProperties", function (spec) {
     Object.keys(spec).forEach(function (key) {
         that[key] = spec[key];
     });
+    return this;
 });
 
 
