@@ -348,3 +348,16 @@ module.exports.define("fixHTML", function (text) {
     text2 += tags;
     return text2;
 });
+
+module.exports.define("sweepTextForTokens", function (text) {
+    var matching_regex = /{\w*?}/g;
+    var tokens = [];
+
+    (text.match(matching_regex) || []).forEach(function (tok) {
+        tokens.push(tok);
+    });
+    tokens.forEach(function (tok, i, arr) {
+        arr[i] = tok.slice(1, -1);
+    });
+    return tokens;
+});
