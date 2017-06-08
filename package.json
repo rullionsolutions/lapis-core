@@ -1,6 +1,6 @@
 {
   "name": "lapis-core",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "Prototypical Inheritance Foundation",
   "main": "index.js",
   "scripts": {
